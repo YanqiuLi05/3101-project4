@@ -1,54 +1,35 @@
+
+const express = require("express");
 const http = require("http");
-const WebSocket = require("ws");
-const fs = require("fs");
 const path = require("path");
+const { WebSocketServer } = require("ws");
 
-const server = http.createServer((req, res) => {
-  let filePath = "." + (req.url === "/" ? "/index.html" : req.url);
-  const ext = path.extname(filePath);
+const app = express();
 
-  let type = "text/html";
-  if (ext === ".css") type = "text/css";
-  if (ext === ".js") type = "text/javascript";
-  if (ext === ".png") type = "image/png";
-  if (ext === ".jpg" || ext === ".jpeg") type = "image/jpeg";
+// Serve static files
+app.use(express.static(path.join(__dirname)));
 
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404);
-      res.end("Not found");
-      return;
-    }
-    res.writeHead(200, { "Content-Type": type });
-    res.end(data);
-  });
-});
+// HTTP server
+const server = http.createServer(app);
 
-const wss = new WebSocket.Server({ server });
-
-let clients = [];
+// WebSocket server
+const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
-  console.log("A user connected");
-  ws.binaryType = "text";
+  console.log("Client connected");
 
-  clients.push(ws);
-
-  ws.on("message", (msg) => {
-    const text = msg.toString(); 
-    console.log("MESSAGE RECEIVED:", text);
-    clients.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(text); 
+  ws.on("message", (data) => {
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState === client.OPEN) {
+        client.send(data.toString());
       }
     });
   });
 
-  ws.on("close", () => {
-    console.log("A user disconnected");
-    clients = clients.filter((c) => c !== ws);
-  });
+  ws.on("close", () => console.log("Client disconnected"));
 });
-server.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+
+const PORT = 3000;
+server.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);
