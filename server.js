@@ -10,6 +10,8 @@ const server = http.createServer((req, res) => {
   let type = "text/html";
   if (ext === ".css") type = "text/css";
   if (ext === ".js") type = "text/javascript";
+  if (ext === ".png") type = "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") type = "image/jpeg";
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -23,30 +25,30 @@ const server = http.createServer((req, res) => {
 });
 
 const wss = new WebSocket.Server({ server });
+
 let clients = [];
 
 wss.on("connection", (ws) => {
-  if (clients.length >= 2) {
-    ws.send(JSON.stringify({ type: "full" }));
-    ws.close();
-    return;
-  }
+  console.log("A user connected");
+  ws.binaryType = "text";
 
   clients.push(ws);
 
   ws.on("message", (msg) => {
+    const text = msg.toString(); 
+    console.log("MESSAGE RECEIVED:", text);
     clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(msg);
+        client.send(text); 
       }
     });
   });
 
   ws.on("close", () => {
+    console.log("A user disconnected");
     clients = clients.filter((c) => c !== ws);
   });
 });
-
 server.listen(3000, () => {
-  console.log("Server running at http://localhost:3000");
+  console.log("Server running on http://localhost:3000");
 });

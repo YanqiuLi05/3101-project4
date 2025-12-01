@@ -1,5 +1,12 @@
+console.log("client.js running");
+
+
 const ws = new WebSocket("ws://localhost:3000");
 
+
+ws.onopen = () => console.log("WS connected!");
+ws.onerror = (e) => console.log("WS error:", e);
+ws.onclose = () => console.log("WS closed");
 
 const canvas = document.getElementById("pad");
 const ctx = canvas.getContext("2d");
@@ -9,15 +16,20 @@ let color = "#4A4122";
 let drawing = false;
 let lastX = 0;
 let lastY = 0;
-const dotSize = 6;         
-const dotSpacing = 5;      
+const dotSize = 6;
+const dotSpacing = 5;
 
-function resizeCanvas() {
+
+notepadImg.onload = () => {
+  canvas.width = notepadImg.clientWidth;
+  canvas.height = notepadImg.clientHeight;
+};
+if (notepadImg.complete) {
   canvas.width = notepadImg.clientWidth;
   canvas.height = notepadImg.clientHeight;
 }
-resizeCanvas();
 
+// Color selection
 document.querySelectorAll(".color").forEach(c => {
   c.addEventListener("click", () => {
     color = c.dataset.color;
@@ -36,13 +48,14 @@ function drawDot(x, y, c) {
 }
 
 canvas.addEventListener("mousedown", (e) => {
-  const rect = notepadImg.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   lastX = e.clientX - rect.left;
   lastY = e.clientY - rect.top;
   drawing = true;
 
   if (insideNotepad(lastX, lastY)) {
     drawDot(lastX, lastY, color);
+
     ws.send(JSON.stringify({
       type: "dot",
       x: lastX,
@@ -58,7 +71,7 @@ canvas.addEventListener("mouseout", () => drawing = false);
 canvas.addEventListener("mousemove", (e) => {
   if (!drawing) return;
 
-  const rect = notepadImg.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
@@ -89,6 +102,7 @@ canvas.addEventListener("mousemove", (e) => {
     lastY = y;
   }
 });
+
 
 ws.onmessage = (event) => {
   const msg = JSON.parse(event.data);

@@ -41,17 +41,17 @@ body {
   align-items: center;
 }
 
-/* Bigger notepad */
 #notepad-img {
-  width: 650px; /* Bigger width */
-  pointer-events: none;
+  width: 650px;
   user-select: none;
+  pointer-events: none;
 }
 
-/* Canvas sits exactly on top */
+
 #pad {
   position: absolute;
   width: 650px;
-  height: auto;
+  height: 850px; 
   cursor: crosshair;
+  pointer-events: auto;
 }
