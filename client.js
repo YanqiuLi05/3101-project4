@@ -1,4 +1,5 @@
-const ws = new WebSocket("ws://" + window.location.hostname + ":3000");
+const ws = new WebSocket("ws://localhost:3000");
+
 
 const canvas = document.getElementById("pad");
 const ctx = canvas.getContext("2d");
@@ -8,8 +9,8 @@ let color = "#4A4122";
 let drawing = false;
 let lastX = 0;
 let lastY = 0;
-const dotSize = 6;          // consistent dot size
-const dotSpacing = 5;       // consistent spacing between dots
+const dotSize = 6;         
+const dotSpacing = 5;      
 
 function resizeCanvas() {
   canvas.width = notepadImg.clientWidth;
@@ -63,7 +64,6 @@ canvas.addEventListener("mousemove", (e) => {
 
   if (!insideNotepad(x, y)) return;
 
-  // Only place dot every fixed distance
   const dx = x - lastX;
   const dy = y - lastY;
   const distance = Math.sqrt(dx * dx + dy * dy);
